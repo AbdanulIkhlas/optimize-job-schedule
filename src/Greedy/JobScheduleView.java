@@ -4,19 +4,77 @@
  */
 package Greedy;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import javax.swing.JFrame;
+
 /**
  *
  * @author KLaZ
  */
-public class JobScheduleView extends javax.swing.JFrame {
-
+public class JobScheduleView extends javax.swing.JFrame {  
+    private List<Job> jobs;
     /**
      * Creates new form JobScheduleView
      */
     public JobScheduleView() {
+        jobs = new ArrayList<>();
         initComponents();
+        setTitle("Job Scheduling");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
     }
 
+    private List<Job> scheduleJobs(List<Job> jobs) {
+        Collections.sort(jobs, new Comparator<Job>() {
+            @Override
+            public int compare(Job j1, Job j2) {
+                return j1.getEndTime() - j2.getEndTime();
+            }
+        });
+
+        int n = jobs.size();
+        int[] dp = new int[n];
+        dp[0] = jobs.get(0).getProfit();
+
+        for (int i = 1; i < n; i++) {
+            int currentProfit = jobs.get(i).getProfit();
+            int prevCompatibleJobIndex = getPrevCompatibleJobIndex(jobs, i);
+
+            if (prevCompatibleJobIndex != -1) {
+                currentProfit += dp[prevCompatibleJobIndex];
+            }
+
+            dp[i] = Math.max(currentProfit, dp[i - 1]);
+        }
+
+        List<Job> schedule = new ArrayList<>();
+        int i = n - 1;
+        while (i >= 0) {
+            if (i == 0 || dp[i] != dp[i - 1]) {
+                schedule.add(jobs.get(i));
+                i = getPrevCompatibleJobIndex(jobs, i);
+            } else {
+                i--;
+            }
+        }
+
+        Collections.reverse(schedule);
+        return schedule;
+    }
+    
+    private int getPrevCompatibleJobIndex(List<Job> jobs, int currentIndex) {
+        for (int i = currentIndex - 1; i >= 0; i--) {
+            if (jobs.get(i).getEndTime() <= jobs.get(currentIndex).getStartTime()) {
+                return i;
+            }
+        }
+        return -1;
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -40,6 +98,7 @@ public class JobScheduleView extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         outputArea = new javax.swing.JTextArea();
         scheduleButton = new javax.swing.JButton();
+        resetButton = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -53,6 +112,12 @@ public class JobScheduleView extends javax.swing.JFrame {
         jLabel4.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel4.setText("Start Time :");
 
+        startTimeField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                startTimeFieldActionPerformed(evt);
+            }
+        });
+
         jLabel5.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel5.setText("End Time :");
 
@@ -61,6 +126,11 @@ public class JobScheduleView extends javax.swing.JFrame {
 
         addButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         addButton.setText("ADD JOB");
+        addButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -121,7 +191,20 @@ public class JobScheduleView extends javax.swing.JFrame {
         jScrollPane1.setViewportView(outputArea);
 
         scheduleButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        scheduleButton.setText("Optimize Job Schedule");
+        scheduleButton.setText("OPTIMIZE JOB SCHEDULE");
+        scheduleButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                scheduleButtonActionPerformed(evt);
+            }
+        });
+
+        resetButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        resetButton.setText("RESET ");
+        resetButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                resetButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -135,12 +218,14 @@ public class JobScheduleView extends javax.swing.JFrame {
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGap(94, 94, 94)
                         .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 383, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 82, Short.MAX_VALUE)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(202, 202, 202)
+                .addGap(88, 88, 88)
                 .addComponent(scheduleButton)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(70, 70, 70)
+                .addComponent(resetButton, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(89, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -149,7 +234,9 @@ public class JobScheduleView extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 235, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(30, 30, 30)
-                .addComponent(scheduleButton)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(scheduleButton)
+                    .addComponent(resetButton))
                 .addGap(0, 34, Short.MAX_VALUE))
         );
 
@@ -180,6 +267,42 @@ public class JobScheduleView extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
+        // TODO add your handling code here:
+        int startTime = Integer.parseInt(startTimeField.getText());
+        int endTime = Integer.parseInt(endTimeField.getText());
+        int profit = Integer.parseInt(profitField.getText());
+        System.out.println(startTime + endTime + profit);
+
+        Job job = new Job(startTime, endTime, profit);
+        jobs.add(job);
+
+        startTimeField.setText("");
+        endTimeField.setText("");
+        profitField.setText("");
+
+        outputArea.append("Job added: " + job.toString() + "\n");
+    }//GEN-LAST:event_addButtonActionPerformed
+
+    private void scheduleButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_scheduleButtonActionPerformed
+        // TODO add your handling code here:
+        List<Job> schedule = scheduleJobs(jobs);
+        outputArea.append("\nOptimal Schedule:\n");
+        for (Job job : schedule) {
+            outputArea.append(job.toString() + "\n");
+        }
+    }//GEN-LAST:event_scheduleButtonActionPerformed
+
+    private void startTimeFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startTimeFieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_startTimeFieldActionPerformed
+
+    private void resetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetButtonActionPerformed
+        // TODO add your handling code here:
+        outputArea.setText("");
+        jobs.clear();
+    }//GEN-LAST:event_resetButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -215,6 +338,8 @@ public class JobScheduleView extends javax.swing.JFrame {
             }
         });
     }
+    
+   
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
@@ -230,7 +355,38 @@ public class JobScheduleView extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextArea outputArea;
     private javax.swing.JTextField profitField;
+    private javax.swing.JButton resetButton;
     private javax.swing.JButton scheduleButton;
     private javax.swing.JTextField startTimeField;
     // End of variables declaration//GEN-END:variables
+
+}
+
+class Job {
+    private int startTime;
+    private int endTime;
+    private int profit;
+
+    public Job(int startTime, int endTime, int profit) {
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.profit = profit;
+    }
+
+    public int getStartTime() {
+        return startTime;
+    }
+
+    public int getEndTime() {
+        return endTime;
+    }
+
+    public int getProfit() {
+        return profit;
+    }
+
+    @Override
+    public String toString() {
+        return "Job {start time: " + startTime + ", end time: " + endTime + ", profit: " + profit + "}";
+    }
 }
