@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -268,24 +269,40 @@ public class JobScheduleView extends javax.swing.JFrame {
         int startTime = Integer.parseInt(startTimeField.getText());
         int endTime = Integer.parseInt(endTimeField.getText());
         int profit = Integer.parseInt(profitField.getText());
-        System.out.println(startTime + endTime + profit);
+        
+        if(startTime > 24 || endTime > 24){
+            JOptionPane.showMessageDialog(null, "Invalid input! Please enter a number between 1 and 24.");
+        }else{
+            if(startTime > endTime ){
+                JOptionPane.showMessageDialog(null, "Start time must be smaller than end time!!!!");
+            }else{
+                Job job = new Job(startTime, endTime, profit);
+                jobs.add(job);
 
-        Job job = new Job(startTime, endTime, profit);
-        jobs.add(job);
+                startTimeField.setText("");
+                endTimeField.setText("");
+                profitField.setText("");
 
-        startTimeField.setText("");
-        endTimeField.setText("");
-        profitField.setText("");
+                outputArea.append("Job added: " + job.toString() + "\n");
+            }
+        }
 
-        outputArea.append("Job added: " + job.toString() + "\n");
+                
     }//GEN-LAST:event_addButtonActionPerformed
 
     private void scheduleButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_scheduleButtonActionPerformed
-        List<Job> schedule = scheduleJobs(jobs);
-        outputArea.append("\nOptimal Schedule:\n");
-        for (Job job : schedule) {
-            outputArea.append(job.toString() + "\n");
+        if (jobs.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "No jobs scheduled!");
+        } else {
+            List<Job> schedule = scheduleJobs(jobs);
+
+            // Tampilkan jadwal
+            outputArea.append("\nOptimal Schedule:\n");
+            for (Job job : schedule) {
+                outputArea.append(job.toString() + "\n");
+            }
         }
+        
     }//GEN-LAST:event_scheduleButtonActionPerformed
 
     private void startTimeFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startTimeFieldActionPerformed
