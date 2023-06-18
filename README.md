@@ -1,3 +1,3 @@
 # PROJECT ANALISA ALGORITMA 
 
-### Mengoptimalkan Jadwal Kerja
+### Menentukan jam kerja yang optimal
