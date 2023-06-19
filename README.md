@@ -1,3 +1,3 @@
 # PROJECT ANALISA ALGORITMA 
 
-### Menentukan jam kerja yang optimal
+### Program untuk membantu membuat job schedule yang optimal
